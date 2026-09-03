@@ -1,6 +1,5 @@
 ExternalProject_Add(libsdl2
     DEPENDS
-        vulkan
         libiconv
     GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
     SOURCE_DIR ${SOURCE_LOCATION}
@@ -19,8 +18,8 @@ ExternalProject_Add(libsdl2
         -DSDL_VULKAN=ON
         -DSDL_TEST=OFF
         -DSDL_TEST_LIBRARY=OFF
-    BUILD_COMMAND ${EXEC} ninja -C <BINARY_DIR>
-    INSTALL_COMMAND ${EXEC} ninja -C <BINARY_DIR> install
+    BUILD_COMMAND ${EXEC} ninja -j4 -C <BINARY_DIR>
+    INSTALL_COMMAND ${EXEC} ninja -j4 -C <BINARY_DIR> install
     LOG_DOWNLOAD 1 LOG_UPDATE 1 LOG_CONFIGURE 1 LOG_BUILD 1 LOG_INSTALL 1
 )
 

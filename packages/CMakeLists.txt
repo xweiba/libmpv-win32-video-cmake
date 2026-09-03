@@ -1,4 +1,8 @@
 set_property(DIRECTORY PROPERTY EP_STEP_TARGETS download)
+option(ENABLE_RELEASE_ARTIFACTS "Build mpv-release/mpv-packaging (full player + d3dcompiler; CI only)" OFF)
+if(ENABLE_RELEASE_ARTIFACTS)
+    list(APPEND _release_artifacts mpv-release mpv-packaging)
+endif()
 include(${PROJECT_SOURCE_DIR}/cmake/packages_check.cmake)
 list(APPEND ep
     gmp
@@ -40,7 +44,6 @@ list(APPEND ep
     fontconfig
     libunibreak
     libass
-    libvpl
     amf-headers
     avisynth-headers
     nvcodec-headers
@@ -66,22 +69,17 @@ list(APPEND ep
     spirv-cross
     glslang
     vulkan-header
-    vulkan
     libsdl2
-    openal-soft
     libopenmpt
     shaderc
     glad
     fast_float
-    libdovi
     libplacebo
     libva
     libzvbi
     libsixel
     ffmpeg
     mpv
-    mpv-release
-    mpv-packaging
     curl
     flac
     opusfile
@@ -95,6 +93,7 @@ list(APPEND ep
     libsodium
     megasdk
 )
+list(APPEND ep ${_release_artifacts})
 foreach(package IN LISTS ep)
     if(NOT ${SINGLE_SOURCE_LOCATION} STREQUAL "")
         set(SOURCE_LOCATION "${SINGLE_SOURCE_LOCATION}/${package}")

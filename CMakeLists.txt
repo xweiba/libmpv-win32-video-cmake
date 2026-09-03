@@ -117,8 +117,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/meson_cross.txt.in ${CMAKE_CURRENT_BI
 set(MESON_CROSS ${CMAKE_CURRENT_BINARY_DIR}/meson_cross.txt)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cargo_config.in ${RUSTUP_LOCATION}/.cargo/config @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/exec.in ${CMAKE_CURRENT_BINARY_DIR}/exec @ONLY)
-set(EXEC ${CMAKE_CURRENT_BINARY_DIR}/exec)
-set(MAKE ${EXEC} make -j${MAKEJOBS})
+set(EXEC bash ${CMAKE_CURRENT_BINARY_DIR}/exec)
+set(MAKE ${EXEC} make -j4)
 
 if(TARGET_CPU STREQUAL "x86_64")
     execute_process(
@@ -147,5 +147,10 @@ message(STATUS "Malloc: ${MALLOC}")
 message(STATUS "Ccache: ${ENABLE_CCACHE}")
 message(STATUS "Target toolchain to build: ${TARGET_ARCH}")
 
-add_subdirectory(toolchain)
+# Native Windows build: use the installed mingw64 toolchain, do not bootstrap
+# the Linux cross toolchain from source.
+option(BUILD_TOOLCHAIN "Build the cross toolchain from source" OFF)
+if(BUILD_TOOLCHAIN)
+    add_subdirectory(toolchain)
+endif()
 add_subdirectory(packages)

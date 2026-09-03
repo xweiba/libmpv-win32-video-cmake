@@ -17,9 +17,9 @@ ExternalProject_Add(openal-soft
         -DALSOFT_EXAMPLES=OFF
         -DALSOFT_TESTS=OFF
         -DALSOFT_BACKEND_PIPEWIRE=OFF
-    BUILD_COMMAND ${EXEC} ninja -C <BINARY_DIR>
+    BUILD_COMMAND ${EXEC} ninja -j4 -C <BINARY_DIR>
           COMMAND bash -c "echo 'Libs.private: -lole32 -luuid -lshlwapi' >> <BINARY_DIR>/openal.pc"
-    INSTALL_COMMAND ${EXEC} ninja -C <BINARY_DIR> install
+    INSTALL_COMMAND ${EXEC} ninja -j4 -C <BINARY_DIR> install
     LOG_DOWNLOAD 1 LOG_UPDATE 1 LOG_CONFIGURE 1 LOG_BUILD 1 LOG_INSTALL 1
 )
 

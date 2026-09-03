@@ -7,6 +7,7 @@ ExternalProject_Add(xz
     CONFIGURE_COMMAND ${EXEC} CONF=1 autoreconf -fi && <SOURCE_DIR>/configure
         --host=${TARGET_ARCH}
         --prefix=${MINGW_INSTALL_PREFIX}
+        --disable-nls
         --disable-shared
         --disable-xz
         --disable-xzdec

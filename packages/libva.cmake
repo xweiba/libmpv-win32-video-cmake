@@ -11,8 +11,8 @@ ExternalProject_Add(libva
         --buildtype=release
         --default-library=static
         -Denable_docs=false
-    BUILD_COMMAND ${EXEC} ninja -C <BINARY_DIR>
-    INSTALL_COMMAND ${EXEC} ninja -C <BINARY_DIR> install
+    BUILD_COMMAND ${EXEC} ninja -j4 -C <BINARY_DIR>
+    INSTALL_COMMAND ${EXEC} ninja -j4 -C <BINARY_DIR> install
             COMMAND bash -c "rm -rf ${MINGW_INSTALL_PREFIX}/lib/libva*.dll.a"
     LOG_DOWNLOAD 1 LOG_UPDATE 1 LOG_CONFIGURE 1 LOG_BUILD 1 LOG_INSTALL 1
 )

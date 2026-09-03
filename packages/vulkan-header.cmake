@@ -14,7 +14,7 @@ ExternalProject_Add(vulkan-header
         -DBUILD_SHARED_LIBS=OFF
         -DVULKAN_HEADERS_ENABLE_MODULE=OFF
     BUILD_COMMAND ""
-    INSTALL_COMMAND ${EXEC} ninja -C <BINARY_DIR> install
+    INSTALL_COMMAND ${EXEC} ninja -j4 -C <BINARY_DIR> install
     LOG_DOWNLOAD 1 LOG_UPDATE 1 LOG_CONFIGURE 1 LOG_INSTALL 1
 )
 force_rebuild_git(vulkan-header)

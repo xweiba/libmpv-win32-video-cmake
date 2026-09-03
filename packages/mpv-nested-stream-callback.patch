@@ -1,0 +1,132 @@
+diff --git a/demux/demux_lavf.c b/demux/demux_lavf.c
+index 7013dbd7d..844608b90 100644
+--- a/demux/demux_lavf.c
++++ b/demux/demux_lavf.c
+@@ -54,6 +54,7 @@
+ #include "options/m_config.h"
+ #include "options/m_option.h"
+ #include "options/path.h"
++#include "player/client.h"
+ 
+ #define INITIAL_PROBE_SIZE STREAM_BUFFER_SIZE
+ #define PROBE_BUF_SIZE (10 * 1024 * 1024)
+@@ -213,6 +214,7 @@ static const struct format_hack format_hacks[] = {
+ struct nested_stream {
+     AVIOContext *id;
+     int64_t last_bytes;
++    struct stream *stream;
+ };
+ 
+ struct stream_info {
+@@ -915,6 +917,86 @@ static int block_io_open(struct AVFormatContext *s, AVIOContext **pb,
+     return AVERROR(EACCES);
+ }
+ 
++static int nested_stream_read(void *opaque, uint8_t *buf, int size)
++{
++    struct stream *stream = opaque;
++    int ret = stream_read_partial(stream, buf, size);
++    return ret ? ret : AVERROR_EOF;
++}
++
++static int64_t nested_stream_seek(void *opaque, int64_t pos, int whence)
++{
++    struct stream *stream = opaque;
++    if (whence == AVSEEK_SIZE)
++        return stream_get_size(stream);
++    if (whence == SEEK_END) {
++        int64_t size = stream_get_size(stream);
++        if (size < 0)
++            return AVERROR(ENOSYS);
++        pos += size;
++    } else if (whence == SEEK_CUR) {
++        pos += stream_tell(stream);
++    } else if (whence != SEEK_SET) {
++        return AVERROR(EINVAL);
++    }
++    return stream_seek(stream, pos) ? stream_tell(stream) : AVERROR(EIO);
++}
++
++static bool nested_stream_cb_is_allowed(struct demuxer *demuxer,
++                                        const char *url,
++                                        AVDictionary **options)
++{
++    bstr protocol = mp_split_proto(bstr0(url), NULL);
++    if (!protocol.len)
++        return false;
++
++    char *name = bstrto0(NULL, protocol);
++    void *user_data;
++    mpv_stream_cb_open_ro_fn open_fn;
++    bool registered = mp_streamcb_lookup(demuxer->global, name,
++                                         &user_data, &open_fn);
++    AVDictionaryEntry *whitelist = options && *options
++        ? av_dict_get(*options, "protocol_whitelist", NULL, 0)
++        : NULL;
++    bool allowed = registered && whitelist &&
++                   av_match_name(name, whitelist->value);
++    talloc_free(name);
++    return allowed;
++}
++
++static int nested_stream_cb_open(struct demuxer *demuxer, AVIOContext **pb,
++                                 const char *url)
++{
++    lavf_priv_t *priv = demuxer->priv;
++    int origin = priv->stream->stream_origin;
++    struct stream *stream = stream_create(url, STREAM_READ | origin,
++                                          demuxer->cancel, demuxer->global);
++    if (!stream)
++        return AVERROR(EIO);
++
++    unsigned char *buffer = av_malloc(BIO_BUFFER_SIZE);
++    if (!buffer) {
++        free_stream(stream);
++        return AVERROR(ENOMEM);
++    }
++    AVIOContext *avio = avio_alloc_context(buffer, BIO_BUFFER_SIZE, 0, stream,
++                                           nested_stream_read, NULL,
++                                           nested_stream_seek);
++    if (!avio) {
++        av_free(buffer);
++        free_stream(stream);
++        return AVERROR(ENOMEM);
++    }
++    avio->seekable = stream->seekable ? AVIO_SEEKABLE_NORMAL : 0;
++    *pb = avio;
++    struct nested_stream nest = {
++        .id = avio,
++        .stream = stream,
++    };
++    MP_TARRAY_APPEND(priv, priv->nested, priv->num_nested, nest);
++    return 0;
++}
++
+ static int nested_io_open(struct AVFormatContext *s, AVIOContext **pb,
+                           const char *url, int flags, AVDictionary **options)
+ {
+@@ -939,6 +1021,10 @@ static int nested_io_open(struct AVFormatContext *s, AVIOContext **pb,
+         }
+     }
+ 
++    if (!(flags & AVIO_FLAG_WRITE) &&
++        nested_stream_cb_is_allowed(demuxer, url, options))
++        return nested_stream_cb_open(demuxer, pb, url);
++
+     int r = priv->default_io_open(s, pb, url, flags, options);
+     if (r >= 0) {
+         if (options)
+@@ -959,7 +1045,13 @@ static int nested_io_close2(struct AVFormatContext *s, AVIOContext *pb)
+ 
+     for (int n = 0; n < priv->num_nested; n++) {
+         if (priv->nested[n].id == pb) {
++            struct stream *stream = priv->nested[n].stream;
+             MP_TARRAY_REMOVE_AT(priv->nested, priv->num_nested, n);
++            if (stream) {
++                free_stream(stream);
++                avio_context_free(&pb);
++                return 0;
++            }
+             break;
+         }
+     }

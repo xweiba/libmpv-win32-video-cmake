@@ -1,7 +1,6 @@
-/release*
-/build*
-/build-*
-/32*
-/64*
-/i686*
-/x86_64*
+build/
+install/
+src_packages/
+*.7z
+*.log
+.cache/

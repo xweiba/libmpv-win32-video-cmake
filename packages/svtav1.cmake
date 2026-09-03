@@ -25,8 +25,8 @@ ExternalProject_Add(svtav1
                          -Dav1_fwd_txfm2d_64x16_avx512=svtav1_av1_fwd_txfm2d_64x16_avx512
                          -Dav1_fwd_txfm2d_16x32_avx512=svtav1_av1_fwd_txfm2d_16x32_avx512
                          -Dav1_fwd_txfm2d_32x16_avx512=svtav1_av1_fwd_txfm2d_32x16_avx512'
-    BUILD_COMMAND ${EXEC} ninja -C <BINARY_DIR>
-    INSTALL_COMMAND ${EXEC} ninja -C <BINARY_DIR> install
+    BUILD_COMMAND ${EXEC} ninja -j4 -C <BINARY_DIR>
+    INSTALL_COMMAND ${EXEC} ninja -j4 -C <BINARY_DIR> install
     LOG_DOWNLOAD 1 LOG_UPDATE 1 LOG_CONFIGURE 1 LOG_BUILD 1 LOG_INSTALL 1
 )
 

@@ -12,8 +12,8 @@ ExternalProject_Add(libmodplug
         -DCMAKE_FIND_ROOT_PATH=${MINGW_INSTALL_PREFIX}
         -DBUILD_SHARED_LIBS=OFF
         -DCMAKE_POLICY_VERSION_MINIMUM=3.5
-    BUILD_COMMAND ${EXEC} ninja -C <BINARY_DIR>
-    INSTALL_COMMAND ${EXEC} ninja -C <BINARY_DIR> install
+    BUILD_COMMAND ${EXEC} ninja -j4 -C <BINARY_DIR>
+    INSTALL_COMMAND ${EXEC} ninja -j4 -C <BINARY_DIR> install
             COMMAND bash -c "cp ${CMAKE_CURRENT_BINARY_DIR}/libmodplug.pc ${MINGW_INSTALL_PREFIX}/lib/pkgconfig/libmodplug.pc"
     LOG_DOWNLOAD 1 LOG_UPDATE 1 LOG_CONFIGURE 1 LOG_BUILD 1 LOG_INSTALL 1
 )

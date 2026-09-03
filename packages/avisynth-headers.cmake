@@ -14,8 +14,8 @@ ExternalProject_Add(avisynth-headers
         -DCMAKE_FIND_ROOT_PATH=${MINGW_INSTALL_PREFIX}
         -DBUILD_SHARED_LIBS=OFF
         -DHEADERS_ONLY=ON
-    BUILD_COMMAND ${EXEC} ninja -C <BINARY_DIR> VersionGen
-    INSTALL_COMMAND ${EXEC} ninja -C <BINARY_DIR> install
+    BUILD_COMMAND ${EXEC} ninja -j4 -C <BINARY_DIR> VersionGen
+    INSTALL_COMMAND ${EXEC} ninja -j4 -C <BINARY_DIR> install
     LOG_DOWNLOAD 1 LOG_UPDATE 1 LOG_CONFIGURE 1 LOG_BUILD 1 LOG_INSTALL 1
 )
 force_rebuild_git(avisynth-headers)

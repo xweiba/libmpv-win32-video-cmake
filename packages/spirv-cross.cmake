@@ -5,7 +5,6 @@ ExternalProject_Add(spirv-cross
     GIT_REMOTE_NAME origin
     GIT_TAG main
     UPDATE_COMMAND ""
-    PATCH_COMMAND ${EXEC} git am --3way ${CMAKE_CURRENT_SOURCE_DIR}/spirv-cross-*.patch
     CONFIGURE_COMMAND ${EXEC} CONF=1 cmake -H<SOURCE_DIR> -B<BINARY_DIR>
         -G Ninja
         -DCMAKE_BUILD_TYPE=Release
@@ -20,9 +19,9 @@ ExternalProject_Add(spirv-cross
         -DSPIRV_CROSS_ENABLE_CPP=OFF
         -DSPIRV_CROSS_ENABLE_REFLECT=OFF
         -DSPIRV_CROSS_ENABLE_UTIL=OFF
-        -DCMAKE_CXX_FLAGS='${CMAKE_CXX_FLAGS} -D__USE_MINGW_ANSI_STDIO'
-    BUILD_COMMAND ${EXEC} ninja -C <BINARY_DIR>
-    INSTALL_COMMAND ${EXEC} ninja -C <BINARY_DIR> install
+        -DCMAKE_CXX_FLAGS=-D__USE_MINGW_ANSI_STDIO
+    BUILD_COMMAND ${EXEC} ninja -j4 -C <BINARY_DIR>
+    INSTALL_COMMAND ${EXEC} ninja -j4 -C <BINARY_DIR> install
     LOG_DOWNLOAD 1 LOG_UPDATE 1 LOG_CONFIGURE 1 LOG_BUILD 1 LOG_INSTALL 1
 )
 

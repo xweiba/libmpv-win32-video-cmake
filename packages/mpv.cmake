@@ -4,19 +4,16 @@ ExternalProject_Add(mpv
         ffmpeg
         fribidi
         lcms2
-        libarchive
         libass
         libjpeg
         libpng
         uchardet
         shaderc
         spirv-cross
-        vulkan
-        shaderc
         libplacebo
         spirv-cross
     GIT_REPOSITORY https://github.com/mpv-player/mpv.git
-    GIT_TAG ad59ff1b4a7479e15cb01a96f64ada4fb4df4951
+    GIT_TAG 32a164cc017acab50389f2194f720ccfd0b01a28
     SOURCE_DIR ${SOURCE_LOCATION}
     PATCH_COMMAND ${EXEC} git apply ${CMAKE_CURRENT_SOURCE_DIR}/mpv-*.patch
     UPDATE_COMMAND ""
@@ -33,7 +30,7 @@ ExternalProject_Add(mpv
         -Db_lto=true
         ${mpv_lto_mode}
         -Dlibmpv=true
-        -Dpdf-build=enabled
+        -Dpdf-build=disabled
         -Dlua=disabled
         -Djavascript=disabled
         -Duchardet=enabled
@@ -42,9 +39,11 @@ ExternalProject_Add(mpv
         -Dspirv-cross=enabled
         -Dvulkan=disabled
         -Dvapoursynth=disabled
-        ${mpv_gl}
+        -Dlibarchive=disabled
+        -Dgl=enabled
+        -Degl-angle=disabled
         -Dc_args='-Wno-error=int-conversion'
-    BUILD_COMMAND ${EXEC} LTO_JOB=1 PDB=1 ninja -C <BINARY_DIR>
+    BUILD_COMMAND ${EXEC} LTO_JOB=1 PDB=1 ninja -j4 -C <BINARY_DIR>
     INSTALL_COMMAND ""
     LOG_DOWNLOAD 1 LOG_UPDATE 1 LOG_CONFIGURE 1 LOG_BUILD 1 LOG_INSTALL 1
 )
@@ -59,7 +58,6 @@ ExternalProject_Add_Step(mpv copy-binary
     DEPENDEES strip-binary
     COMMAND ${CMAKE_COMMAND} -E copy <BINARY_DIR>/mpv.exe                           ${CMAKE_CURRENT_BINARY_DIR}/mpv-package/mpv.exe
     COMMAND ${CMAKE_COMMAND} -E copy <BINARY_DIR>/mpv.com                           ${CMAKE_CURRENT_BINARY_DIR}/mpv-package/mpv.com
-    COMMAND ${CMAKE_COMMAND} -E copy <BINARY_DIR>/mpv.pdf                           ${CMAKE_CURRENT_BINARY_DIR}/mpv-package/doc/manual.pdf
     COMMAND ${CMAKE_COMMAND} -E copy ${MINGW_INSTALL_PREFIX}/etc/fonts/fonts.conf   ${CMAKE_CURRENT_BINARY_DIR}/mpv-package/mpv/fonts.conf
     ${mpv_copy_debug}
     COMMAND ${CMAKE_COMMAND} -E copy <BINARY_DIR>/libmpv-2.dll          ${CMAKE_CURRENT_BINARY_DIR}/mpv-dev/libmpv-2.dll

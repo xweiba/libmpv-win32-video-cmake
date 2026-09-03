@@ -21,17 +21,15 @@ ExternalProject_Add(ffmpeg
         opus
         speex
         vorbis
-        libvpl
         libjxl
         libxml2
         shaderc
         libplacebo
         dav1d
-        openal-soft
     GIT_REPOSITORY https://github.com/FFmpeg/FFmpeg.git
     SOURCE_DIR ${SOURCE_LOCATION}
     GIT_CLONE_FLAGS "--sparse --filter=tree:0"
-    GIT_TAG release/7.1
+    GIT_TAG n7.1.3
     GIT_CLONE_POST_COMMAND "sparse-checkout set --no-cone /* !tests/ref/fate"
     PATCH_COMMAND ${EXEC} git apply ${CMAKE_CURRENT_SOURCE_DIR}/ffmpeg-*.patch
     UPDATE_COMMAND ""
@@ -91,23 +89,10 @@ ExternalProject_Add(ffmpeg
         --enable-runtime-cpudetect
 
         --enable-openssl
-        --enable-libssh
 
-        --enable-libdav1d
 
-        --enable-libjxl
 
-        --enable-libvpl
-        --enable-libbs2b
-        --enable-libwebp
-        --enable-libzimg
-        --enable-libxml2
-        --enable-libsoxr
-        --enable-libspeex
-        --enable-libmysofa
-        --enable-libshaderc
-        --enable-libfribidi
-        --enable-libfreetype
+
 
         --enable-avutil
         --enable-avcodec
@@ -298,8 +283,7 @@ ExternalProject_Add(ffmpeg
 	--enable-encoder=jpegls
 
         --enable-network
-        
-        ${ffmpeg_cuda}
+
         ${ffmpeg_lto}
         --extra-cflags='-Wno-error=int-conversion'
         "--extra-libs='${ffmpeg_extra_libs}'" # -lstdc++ / -lc++ needs by libjxl and shaderc

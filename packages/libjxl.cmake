@@ -46,10 +46,10 @@ ExternalProject_Add(libjxl
         -DJPEGXL_FORCE_SYSTEM_LCMS2=ON
         -DJPEGXL_FORCE_SYSTEM_BROTLI=ON
         -DJPEGXL_FORCE_SYSTEM_HWY=ON
-        -DCMAKE_CXX_FLAGS='${CMAKE_CXX_FLAGS} ${libjxl_unaligned_vector}'
-        -DCMAKE_C_FLAGS='${CMAKE_C_FLAGS}     ${libjxl_unaligned_vector}'
-    BUILD_COMMAND ${EXEC} ninja -C <BINARY_DIR>
-    INSTALL_COMMAND ${EXEC} ninja -C <BINARY_DIR> install
+        -DCMAKE_CXX_FLAGS=${libjxl_unaligned_vector}
+        -DCMAKE_C_FLAGS=${libjxl_unaligned_vector}
+    BUILD_COMMAND ${EXEC} ninja -j4 -C <BINARY_DIR>
+    INSTALL_COMMAND ${EXEC} ninja -j4 -C <BINARY_DIR> install
     LOG_DOWNLOAD 1 LOG_UPDATE 1 LOG_CONFIGURE 1 LOG_BUILD 1 LOG_INSTALL 1
 )
 

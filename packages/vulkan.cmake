@@ -5,8 +5,7 @@ ExternalProject_Add(vulkan
     GIT_CLONE_FLAGS "--filter=tree:0"
     UPDATE_COMMAND ""
     GIT_REMOTE_NAME origin
-    GIT_TAG main
-    PATCH_COMMAND ${EXEC} git am --no-3way ${CMAKE_CURRENT_SOURCE_DIR}/vulkan-*.patch
+    GIT_TAG 1338b8ee2ad29446297e7368370eecabd4890bec
     CONFIGURE_COMMAND ${EXEC} CONF=1 cmake -H<SOURCE_DIR> -B<BINARY_DIR>
         -G Ninja
         -DCMAKE_BUILD_TYPE=Release
@@ -19,9 +18,7 @@ ExternalProject_Add(vulkan
         -DENABLE_WERROR=OFF
         ${vulkan_asm}
         -DBUILD_STATIC_LOADER=ON
-        -DCMAKE_C_FLAGS='${CMAKE_C_FLAGS} -D__STDC_FORMAT_MACROS -DSTRSAFE_NO_DEPRECATE -Dparse_number=cjson_parse_number'
-        -DCMAKE_CXX_FLAGS='${CMAKE_CXX_FLAGS} -D__STDC_FORMAT_MACROS -fpermissive'
-    BUILD_COMMAND ${EXEC} ninja -C <BINARY_DIR>
+    BUILD_COMMAND ${EXEC} ninja -j4 -C <BINARY_DIR>
     INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <BINARY_DIR>/loader/libvulkan.a ${MINGW_INSTALL_PREFIX}/lib/libvulkan.a
             COMMAND ${CMAKE_COMMAND} -E copy <BINARY_DIR>/loader/vulkan_own.pc ${MINGW_INSTALL_PREFIX}/lib/pkgconfig/vulkan.pc
     LOG_DOWNLOAD 1 LOG_UPDATE 1 LOG_CONFIGURE 1 LOG_BUILD 1 LOG_INSTALL 1

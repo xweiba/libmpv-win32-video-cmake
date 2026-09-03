@@ -17,6 +17,7 @@ ExternalProject_Add(libiconv
         --disable-nls
         --disable-shared
         --enable-extra-encodings
+    BUILD_IN_SOURCE TRUE
     BUILD_COMMAND ${MAKE}
     INSTALL_COMMAND ${MAKE} install
     LOG_DOWNLOAD 1 LOG_UPDATE 1 LOG_CONFIGURE 1 LOG_BUILD 1 LOG_INSTALL 1
@@ -25,6 +26,13 @@ ExternalProject_Add(libiconv
 ExternalProject_Add_Step(libiconv install-pc
     DEPENDEES install
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/libiconv.pc ${MINGW_INSTALL_PREFIX}/lib/pkgconfig/iconv.pc
+)
+
+# Native Windows: autotools aux files ship under build-aux/, configure needs them at the source top.
+ExternalProject_Add_Step(libiconv prep-aux
+    COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/build-aux <SOURCE_DIR>
+    DEPENDEES download
+    DEPENDERS configure
 )
 
 cleanup(libiconv install-pc)

@@ -38,8 +38,8 @@ ExternalProject_Add(x265-10bit
         -DENABLE_CLI=OFF
         -DCMAKE_ASM_NASM_FLAGS=-w-macro-params-legacy
         -DCMAKE_POLICY_VERSION_MINIMUM=3.5
-    BUILD_COMMAND ${EXEC} ninja -C <BINARY_DIR>
-    INSTALL_COMMAND ${EXEC} ninja -C <BINARY_DIR> install
+    BUILD_COMMAND ${EXEC} ninja -j4 -C <BINARY_DIR>
+    INSTALL_COMMAND ${EXEC} ninja -j4 -C <BINARY_DIR> install
     LOG_DOWNLOAD 1 LOG_UPDATE 1 LOG_CONFIGURE 1 LOG_BUILD 1 LOG_INSTALL 1
 )
 
@@ -62,7 +62,7 @@ ExternalProject_Add(x265-10bit-lib
         -DENABLE_CLI=OFF
         -DCMAKE_ASM_NASM_FLAGS=-w-macro-params-legacy
         -DCMAKE_POLICY_VERSION_MINIMUM=3.5
-    BUILD_COMMAND ${EXEC} ninja -C <BINARY_DIR>
+    BUILD_COMMAND ${EXEC} ninja -j4 -C <BINARY_DIR>
     INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <BINARY_DIR>/libx265.a ${binary_dir}/libx265_main10.a
     LOG_DOWNLOAD 1 LOG_UPDATE 1 LOG_CONFIGURE 1 LOG_BUILD 1 LOG_INSTALL 1
 )
@@ -87,7 +87,7 @@ ExternalProject_Add(x265-12bit-lib
         -DENABLE_CLI=OFF
         -DCMAKE_ASM_NASM_FLAGS=-w-macro-params-legacy
         -DCMAKE_POLICY_VERSION_MINIMUM=3.5
-    BUILD_COMMAND ${EXEC} ninja -C <BINARY_DIR>
+    BUILD_COMMAND ${EXEC} ninja -j4 -C <BINARY_DIR>
     INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <BINARY_DIR>/libx265.a ${binary_dir}/libx265_main12.a
     LOG_DOWNLOAD 1 LOG_UPDATE 1 LOG_CONFIGURE 1 LOG_BUILD 1 LOG_INSTALL 1
 )
@@ -128,11 +128,11 @@ ExternalProject_Add(x265-8+10bit
                         -DENABLE_CLI=OFF
                         -DCMAKE_ASM_NASM_FLAGS=-w-macro-params-legacy
                         -DCMAKE_POLICY_VERSION_MINIMUM=3.5
-    BUILD_COMMAND ${EXEC} ninja -C <BINARY_DIR>
+    BUILD_COMMAND ${EXEC} ninja -j4 -C <BINARY_DIR>
           COMMAND ${CMAKE_COMMAND} -E copy <BINARY_DIR>/libx265.a <BINARY_DIR>/libx265_main.a
           COMMAND chmod 755 ${COMBINE}
           COMMAND ${COMBINE} <BINARY_DIR> libx265_main.a libx265_main10.a
-    INSTALL_COMMAND ${EXEC} ninja -C <BINARY_DIR> install/strip
+    INSTALL_COMMAND ${EXEC} ninja -j4 -C <BINARY_DIR> install/strip
     LOG_DOWNLOAD 1 LOG_UPDATE 1 LOG_CONFIGURE 1 LOG_BUILD 1 LOG_INSTALL 1
 )
 
@@ -161,11 +161,11 @@ ExternalProject_Add(x265-8+10+12bit
                         -DENABLE_CLI=OFF
                         -DCMAKE_ASM_NASM_FLAGS=-w-macro-params-legacy
                         -DCMAKE_POLICY_VERSION_MINIMUM=3.5
-    BUILD_COMMAND ${EXEC} ninja -C <BINARY_DIR>
+    BUILD_COMMAND ${EXEC} ninja -j4 -C <BINARY_DIR>
           COMMAND ${CMAKE_COMMAND} -E copy <BINARY_DIR>/libx265.a <BINARY_DIR>/libx265_main.a
           COMMAND chmod 755 ${COMBINE}
           COMMAND ${COMBINE} <BINARY_DIR> libx265_main.a libx265_main10.a libx265_main12.a
-    INSTALL_COMMAND ${EXEC} ninja -C <BINARY_DIR> install/strip
+    INSTALL_COMMAND ${EXEC} ninja -j4 -C <BINARY_DIR> install/strip
     LOG_DOWNLOAD 1 LOG_UPDATE 1 LOG_CONFIGURE 1 LOG_BUILD 1 LOG_INSTALL 1
 )
 

@@ -20,11 +20,11 @@ ExternalProject_Add(openssl
         ${openssl_target}
         ${openssl_ec_opt}
         no-ssl3-method
-        enable-brotli
+        no-brotli
         no-whirlpool
         no-filenames
         no-camellia
-        enable-zstd
+        no-zstd
         no-capieng
         no-shared
         no-rmd160
