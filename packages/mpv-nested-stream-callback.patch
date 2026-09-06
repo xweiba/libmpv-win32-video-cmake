@@ -1,5 +1,5 @@
 diff --git a/demux/demux_lavf.c b/demux/demux_lavf.c
-index 7013dbd7d..844608b90 100644
+index 7013dbd7dc..cdaeb5b1c6 100644
 --- a/demux/demux_lavf.c
 +++ b/demux/demux_lavf.c
 @@ -54,6 +54,7 @@
@@ -10,15 +10,16 @@ index 7013dbd7d..844608b90 100644
  
  #define INITIAL_PROBE_SIZE STREAM_BUFFER_SIZE
  #define PROBE_BUF_SIZE (10 * 1024 * 1024)
-@@ -213,6 +214,7 @@ static const struct format_hack format_hacks[] = {
+@@ -213,6 +214,8 @@ static const struct format_hack format_hacks[] = {
  struct nested_stream {
      AVIOContext *id;
      int64_t last_bytes;
 +    struct stream *stream;
++    bool stream_cb;
  };
  
  struct stream_info {
-@@ -915,6 +917,86 @@ static int block_io_open(struct AVFormatContext *s, AVIOContext **pb,
+@@ -915,6 +918,105 @@ static int block_io_open(struct AVFormatContext *s, AVIOContext **pb,
      return AVERROR(EACCES);
  }
  
@@ -72,12 +73,19 @@ index 7013dbd7d..844608b90 100644
 +static int nested_stream_cb_open(struct demuxer *demuxer, AVIOContext **pb,
 +                                 const char *url)
 +{
++    if (mp_cancel_test(demuxer->cancel))
++        return AVERROR_EXIT;
++
 +    lavf_priv_t *priv = demuxer->priv;
 +    int origin = priv->stream->stream_origin;
 +    struct stream *stream = stream_create(url, STREAM_READ | origin,
 +                                          demuxer->cancel, demuxer->global);
 +    if (!stream)
 +        return AVERROR(EIO);
++    if (mp_cancel_test(demuxer->cancel)) {
++        free_stream(stream);
++        return AVERROR_EXIT;
++    }
 +
 +    unsigned char *buffer = av_malloc(BIO_BUFFER_SIZE);
 +    if (!buffer) {
@@ -97,36 +105,79 @@ index 7013dbd7d..844608b90 100644
 +    struct nested_stream nest = {
 +        .id = avio,
 +        .stream = stream,
++        .stream_cb = true,
 +    };
 +    MP_TARRAY_APPEND(priv, priv->nested, priv->num_nested, nest);
 +    return 0;
 +}
 +
++static void nested_stream_cb_free(struct nested_stream *nest)
++{
++    if (nest->stream)
++        free_stream(nest->stream);
++    nest->stream = NULL;
++    if (nest->id) {
++        av_freep(&nest->id->buffer);
++        avio_context_free(&nest->id);
++    }
++}
++
  static int nested_io_open(struct AVFormatContext *s, AVIOContext **pb,
                            const char *url, int flags, AVDictionary **options)
  {
-@@ -939,6 +1021,10 @@ static int nested_io_open(struct AVFormatContext *s, AVIOContext **pb,
+@@ -939,6 +1041,15 @@ static int nested_io_open(struct AVFormatContext *s, AVIOContext **pb,
          }
      }
  
++    bool top_level = !s->pb;
 +    if (!(flags & AVIO_FLAG_WRITE) &&
-+        nested_stream_cb_is_allowed(demuxer, url, options))
-+        return nested_stream_cb_open(demuxer, pb, url);
++        nested_stream_cb_is_allowed(demuxer, url, options)) {
++        int r = nested_stream_cb_open(demuxer, pb, url);
++        if (r >= 0 && top_level)
++            s->flags |= AVFMT_FLAG_CUSTOM_IO;
++        return r;
++    }
 +
      int r = priv->default_io_open(s, pb, url, flags, options);
      if (r >= 0) {
          if (options)
-@@ -959,7 +1045,13 @@ static int nested_io_close2(struct AVFormatContext *s, AVIOContext *pb)
+@@ -957,8 +1068,26 @@ static int nested_io_close2(struct AVFormatContext *s, AVIOContext *pb)
+     mp_require(demuxer);
+     lavf_priv_t *priv = demuxer->priv;
  
++    // FFmpeg demuxers can route the caller-owned top-level AVIOContext
++    // through io_close2 while tearing down nested manifests. mpv releases
++    // priv->pb in demux_close_lavf; avio_close() must never see its stream
++    // pointer as a FFmpeg URLContext.
++    if (pb == priv->pb)
++        return 0;
++
      for (int n = 0; n < priv->num_nested; n++) {
          if (priv->nested[n].id == pb) {
-+            struct stream *stream = priv->nested[n].stream;
-             MP_TARRAY_REMOVE_AT(priv->nested, priv->num_nested, n);
-+            if (stream) {
-+                free_stream(stream);
-+                avio_context_free(&pb);
++            if (priv->nested[n].stream_cb) {
++                // HLS can close the same nested input more than once. Keep the
++                // AVIO shell as a tombstone so a repeated close never falls
++                // through to avio_close(), which treats opaque as URLContext.
++                if (priv->nested[n].stream) {
++                    free_stream(priv->nested[n].stream);
++                    priv->nested[n].stream = NULL;
++                    av_freep(&pb->buffer);
++                }
 +                return 0;
 +            }
+             MP_TARRAY_REMOVE_AT(priv->nested, priv->num_nested, n);
              break;
          }
-     }
+@@ -1424,6 +1553,12 @@ static void demux_close_lavf(demuxer_t *demuxer)
+         // still weird. Compensate.
+         if (priv->num_nested == 1 && priv->nested[0].id == leaking)
+             priv->num_nested = 0;
++        for (int n = priv->num_nested - 1; n >= 0; n--) {
++            if (priv->nested[n].stream_cb) {
++                nested_stream_cb_free(&priv->nested[n]);
++                MP_TARRAY_REMOVE_AT(priv->nested, priv->num_nested, n);
++            }
++        }
+         if (priv->num_nested) {
+             MP_WARN(demuxer, "Leaking %d nested connections (FFmpeg bug).\n",
+                     priv->num_nested);
