@@ -264,6 +264,18 @@ ExternalProject_Add(ffmpeg
 
         --enable-filter=overlay
         --enable-filter=equalizer
+        --enable-filter=astats
+        --enable-filter=aresample
+        --enable-filter=aformat
+        --enable-filter=anull
+        --enable-filter=asplit
+        --enable-filter=pan
+        --enable-filter=bandpass
+        --enable-filter=amerge
+
+        --enable-muxer=mp4
+        --enable-muxer=mov
+        --enable-bsf=aac_adtstoasc
 
         --enable-protocol=async
         --enable-protocol=cache
