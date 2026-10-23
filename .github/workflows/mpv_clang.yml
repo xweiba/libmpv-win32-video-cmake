@@ -21,6 +21,10 @@ on:
         default: false
         type: boolean
 
+permissions:
+  contents: write
+  actions: write
+
 jobs:
   build_mpv:
     name: Building mpv
