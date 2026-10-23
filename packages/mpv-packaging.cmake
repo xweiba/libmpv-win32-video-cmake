@@ -5,7 +5,9 @@ file(WRITE ${PACKAGE}
 target_cpu=$3
 package_archive() {
     dir=$1
-    if [ \"$target_cpu\" = \"aarch64\" ]; then
+    # mpv-dev archives are zip on every arch: media-kit extracts them with
+    # cmake -E tar, which cannot read 7z on every host.
+    if [ \"$target_cpu\" = \"aarch64\" ] || [[ $(basename $dir) == mpv-dev-* ]]; then
         7z a -tzip -mx=9 $dir.zip $dir/* -x!*.7z -x!*.zip
     else
         7z a -m0=lzma2 -mx=9 -ms=on $dir.7z $dir/* -x!*.7z -x!*.zip
